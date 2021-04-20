@@ -1,6 +1,6 @@
 import {Ticker, Event, TickerEvent} from "@create2d/core";
 import AbstractTween, {TweenAction, TweenProps, TweenStep} from "./AbstractTween";
-import {Ease, EaseFunction} from "./Ease";
+import Ease, {EaseFunction} from "./Ease";
 
 type proto = {[k: string]: any};
 

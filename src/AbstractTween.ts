@@ -1,6 +1,6 @@
 import {EventDispatcher} from "@create2d/core";
 
-import {Ease, EaseFunction} from "./Ease";
+import Ease, {EaseFunction} from "./Ease";
 
 export interface TweenProps {
 	useTicks?: boolean,
