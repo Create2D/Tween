@@ -2,7 +2,7 @@ import AbstractTween from "./AbstractTween";
 import Tween from "./Tween";
 import Timeline from "./Timeline";
 
-export default class TweenGroup extends AbstractTween{
+export default class TweenGroup extends AbstractTween {
 
     private _tweens: AbstractTween[] = [];
     private __onComplete: any;
@@ -69,7 +69,7 @@ export default class TweenGroup extends AbstractTween{
      * // can also add multiple objects:
      * myGroup.add(myTween, myTween2, myTimeline, myOtherGroup);
      *
-     * @param {...tweenjs.Tween|tweenjs.Timeline|tweenjs.TweenGroup} tweens The tween, timeline, or tween group to add.
+     * @param {... Tween|Timeline|TweenGroup} tweens The tween, timeline, or tween group to add.
      * @return {Object} This tween that was added.
      */
     add(...tweens: AbstractTween[]): AbstractTween {
@@ -112,7 +112,7 @@ export default class TweenGroup extends AbstractTween{
     /**
      * Pauses all child tweens/timelines/groups and removes them from this group. Child groups will also be reset.
      * @param {Boolean} keepGroups If true, groups will not be removed, only reset.
-     * @return {tweenjs.TweenGroup} This instance (for chaining calls).
+     * @return {TweenGroup} This instance (for chaining calls).
      * @chainable
      */
     reset(keepGroups: boolean = true): TweenGroup {
@@ -132,6 +132,9 @@ export default class TweenGroup extends AbstractTween{
 
     _onComplete(evt: any) {
         this.remove(evt.target);
+    }
+    _runActions(startRawPos: number, endRawPos: number, jump: boolean, includeStart: boolean) {
+        throw new Error("Method not implemented.");
     }
     _runActionsRange(startPos: number, endPos: number, jump: boolean, includeStart: boolean): boolean {
         throw new Error("Method not implemented.");

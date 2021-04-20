@@ -1,6 +1,5 @@
-import { EventDispatcher } from "@Create2D/core";
-import Tween from "./Tween";
-import Timeline from "./Timeline";
+import {EventDispatcher} from "@create2d/core";
+
 import {Ease, EaseFunction} from "./Ease";
 
 export interface TweenProps {
@@ -121,7 +120,7 @@ export default abstract class AbstractTween extends EventDispatcher {
 	/**
 	 * Returns a list of the labels defined on this tween sorted by position.
 	 **/
-	getLabels(): {label: string, position: number}[] {
+	get labels(): {label: string, position: number}[] {
 		if (!this._labelList) {
 			this._labelList = [];
 			for (let label of Object.keys(this._labels)) {
@@ -132,8 +131,10 @@ export default abstract class AbstractTween extends EventDispatcher {
 		return this._labelList.map(a => {return {label: a.label, position: a.position}});
 	}
 
-	setLabels(labels: {[label: string]: number}) {
-		this._labels = labels;
+	set labels(labels: {label: string, position: number}[]) {
+		for (const label of labels) {
+			this._labels[label.label] = label.position;
+		}
 		this._labelList = [];
 	}
 
@@ -164,16 +165,9 @@ export default abstract class AbstractTween extends EventDispatcher {
 	 * Pauses or unpauses the tween. A paused tween is removed from the global registry and is eligible for garbage collection
 	 * if no other references to it exist.
 	 **/
-	get paused(): boolean {
-		return this._paused;
-	}
+	abstract get paused(): boolean;
 
-	set paused(paused: boolean) {
-		if (this instanceof Tween) {
-			Tween._register(this, paused);
-		}
-		this._paused = paused;
-	}
+	abstract set paused(paused: boolean);
 
 	/**
 	 * Advances the tween by a specified amount.
@@ -376,75 +370,7 @@ export default abstract class AbstractTween extends EventDispatcher {
 	 * @param {Boolean} jump
 	 * @param {Boolean} includeStart
 	 */
-	_runActions(startRawPos: number, endRawPos: number, jump: boolean, includeStart: boolean) {
-		if (!(this instanceof Timeline)) {
-			return;
-		}
-		// console.log(this.passive === false ? " > Tween" : "Timeline", "run", startRawPos, endRawPos, jump, includeStart);
-		// if we don't have any actions, and we're not a Timeline, then return:
-		// TODO: a cleaner way to handle this would be to override this method in Tween, but I'm not sure it's worth the overhead.
-		if (!this._actionHead && !this.tweens) {
-			return;
-		}
-
-		const d = this.duration, loopCount = this.loop;
-		let reversed = this.reversed, bounce = this.bounce;
-		let loop0, loop1, t0, t1;
-
-		if (d === 0) {
-			// deal with 0 length tweens:
-			loop0 = loop1 = t0 = t1 = 0;
-			reversed = bounce = false;
-		} else {
-			loop0 = startRawPos / d | 0;
-			loop1 = endRawPos / d | 0;
-			t0 = startRawPos - loop0 * d;
-			t1 = endRawPos - loop1 * d;
-		}
-
-		// catch positions that are past the end:
-		if (loopCount !== -1) {
-			if (loop1 > loopCount) {
-				t1 = d;
-				loop1 = loopCount;
-			}
-			if (loop0 > loopCount) {
-				t0 = d;
-				loop0 = loopCount;
-			}
-		}
-
-		// special cases:
-		if (jump) {
-			return this._runActionsRange(t1, t1, jump, includeStart);
-		} // jump.
-		else if (loop0 === loop1 && t0 === t1 && !jump && !includeStart) {
-			return;
-		} // no actions if the position is identical and we aren't including the start
-		else if (loop0 === -1) {
-			loop0 = t0 = 0;
-		} // correct the -1 value for first advance, important with useTicks.
-
-		const dir = (startRawPos <= endRawPos);
-		let loop = loop0;
-		do {
-			let rev = !reversed !== !(bounce && loop % 2);
-			let start = (loop === loop0) ? t0 : dir ? 0 : d;
-			let end = (loop === loop1) ? t1 : dir ? d : 0;
-
-			if (rev) {
-				start = d - start;
-				end = d - end;
-			}
-
-			if (bounce && loop !== loop0 && start === end) { /* bounced onto the same time/frame, don't re-execute end actions */
-			} else if (this._runActionsRange(start, end, jump, includeStart || (loop !== loop0 && !bounce))) {
-				return true;
-			}
-
-			includeStart = false;
-		} while ((dir && ++loop <= loop1) || (!dir && --loop >= loop1));
-	}
+	abstract _runActions(startRawPos: number, endRawPos: number, jump: boolean, includeStart: boolean): void;
 
 	abstract _runActionsRange(startPos: number, endPos: number, jump: boolean, includeStart: boolean): boolean;
 

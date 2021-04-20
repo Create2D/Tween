@@ -1,5 +1,4 @@
-import {Ticker, Event, TickerEvent} from "@Create2D/Core";
-
+import {Ticker, Event, TickerEvent} from "@create2d/core";
 import AbstractTween, {TweenAction, TweenProps, TweenStep} from "./AbstractTween";
 import {Ease, EaseFunction} from "./Ease";
 
@@ -77,7 +76,7 @@ export default class Tween extends AbstractTween {
 	 * @param {Boolean} paused Indicates whether a global pause is in effect. Tweens with {@link Tween#ignoreGlobalPause}
 	 * will ignore this, but all others will pause if this is `true`.
 	 **/
-	static tick(delta: number, paused: boolean) {
+	static tick(delta: number, paused: boolean = false) {
 		let tween = Tween._tweenHead;
 		const t = Tween._inTick = Date.now();
 		while (tween) {
@@ -350,6 +349,15 @@ export default class Tween extends AbstractTween {
 		return this._addAction(tween || this, this._set, [{paused: false}]);
 	}
 
+	get paused(): boolean {
+		return this._paused;
+	}
+
+	set paused(paused: boolean) {
+		Tween._register(this, paused);
+		this._paused = paused;
+	}
+
 	/**
 	 * @throws Tween cannot be cloned.
 	 */
@@ -432,6 +440,70 @@ export default class Tween extends AbstractTween {
 			this.target[n] = v;
 		}
 
+	}
+
+	_runActions(startRawPos: number, endRawPos: number, jump: boolean, includeStart: boolean) {
+		if (!this._actionHead) {
+			return;
+		}
+
+		const d = this.duration, loopCount = this.loop;
+		let reversed = this.reversed, bounce = this.bounce;
+		let loop0, loop1, t0, t1;
+
+		if (d === 0) {
+			// deal with 0 length tweens:
+			loop0 = loop1 = t0 = t1 = 0;
+			reversed = bounce = false;
+		} else {
+			loop0 = startRawPos / d | 0;
+			loop1 = endRawPos / d | 0;
+			t0 = startRawPos - loop0 * d;
+			t1 = endRawPos - loop1 * d;
+		}
+
+		// catch positions that are past the end:
+		if (loopCount !== -1) {
+			if (loop1 > loopCount) {
+				t1 = d;
+				loop1 = loopCount;
+			}
+			if (loop0 > loopCount) {
+				t0 = d;
+				loop0 = loopCount;
+			}
+		}
+
+		// special cases:
+		if (jump) {
+			return this._runActionsRange(t1, t1, jump, includeStart);
+		} // jump.
+		else if (loop0 === loop1 && t0 === t1 && !jump && !includeStart) {
+			return;
+		} // no actions if the position is identical and we aren't including the start
+		else if (loop0 === -1) {
+			loop0 = t0 = 0;
+		} // correct the -1 value for first advance, important with useTicks.
+
+		const dir = (startRawPos <= endRawPos);
+		let loop = loop0;
+		do {
+			let rev = !reversed !== !(bounce && loop % 2);
+			let start = (loop === loop0) ? t0 : dir ? 0 : d;
+			let end = (loop === loop1) ? t1 : dir ? d : 0;
+
+			if (rev) {
+				start = d - start;
+				end = d - end;
+			}
+
+			if (bounce && loop !== loop0 && start === end) { /* bounced onto the same time/frame, don't re-execute end actions */
+			} else if (this._runActionsRange(start, end, jump, includeStart || (loop !== loop0 && !bounce))) {
+				return true;
+			}
+
+			includeStart = false;
+		} while ((dir && ++loop <= loop1) || (!dir && --loop >= loop1));
 	}
 
 	_runActionsRange(startPos: number, endPos: number, jump: boolean, includeStart: boolean): boolean {

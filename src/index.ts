@@ -1,4 +1,4 @@
-export { Event, EventDispatcher, Ticker } from "@Create2D/Core";
+export { Event, EventDispatcher, Ticker } from "@create2d/core";
 
 export { default as AbstractTween } from "./AbstractTween";
 export { default as Tween } from "./Tween";
