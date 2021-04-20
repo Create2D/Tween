@@ -1,8 +1,8 @@
 {
-  "name": "@Create2D/Tween",
-  "version": "0.0.1",
-  "description": "",
-  "main": "index.js",
+  "name": "@create2d/tween",
+  "version": "0.0.5",
+  "description": "Easy to use tweening engine",
+  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -17,5 +17,9 @@
   "bugs": {
     "url": "https://github.com/Create2D/Tween/issues"
   },
-  "homepage": "https://github.com/Create2D/Tween#readme"
+  "homepage": "https://github.com/Create2D/Tween#readme",
+  "dependencies": {
+    "@create2d/core": "0.0.4"
+  },
+  "devDependencies": {}
 }
