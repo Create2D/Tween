@@ -1,5 +1,22 @@
-# Modules
-node_modules
+# Packages
+node_modules/
 
-# Build folder
-dist
+# Build
+dist/
+
+# JetBrains
+.idea/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Atom
+.atom/
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
