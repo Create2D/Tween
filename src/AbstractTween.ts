@@ -21,9 +21,9 @@ export default abstract class AbstractTween extends EventDispatcher {
 	name ?: string;
 
 	/**
-	 * Causes this tween to continue playing when a global pause is active. For example, if TweenJS is using {@link core.Ticker},
+	 * Causes this tween to continue playing when a global pause is active. For example, if TweenJS is using {@link Ticker},
 	 * then setting this to false (the default) will cause this tween to be paused when `Ticker.setPaused(true)`
-	 * is called. See the {@link tweenjs.Tween#tick} method for more info. Can be set via the `props` parameter.
+	 * is called. See the {@link Tween#tick} method for more info. Can be set via the `props` parameter.
 	 **/
 	ignoreGlobalPause: boolean = false;
 
@@ -64,7 +64,7 @@ export default abstract class AbstractTween extends EventDispatcher {
 
 	/**
 	 * The current normalized position of the tween. This will always be a value between 0 and `duration`.
-	 * Changing this property directly will have unexpected results, use {@link tweenjs.Tween#setPosition}.
+	 * Changing this property directly will have unexpected results, use {@link Tween#setPosition}.
 	 **/
 	position: number = 0;
 
@@ -266,7 +266,7 @@ export default abstract class AbstractTween extends EventDispatcher {
 	}
 
 	/**
-	 * Adds a label that can be used with {@link tweenjs.Timeline#gotoAndPlay}/{@link tweenjs.Timeline#gotoAndStop}.
+	 * Adds a label that can be used with {@link Timeline#gotoAndPlay} and {@link Timeline#gotoAndStop}.
 	 **/
 	addLabel(label: string, position: number) {
 		if (!this._labels) {
@@ -326,12 +326,7 @@ export default abstract class AbstractTween extends EventDispatcher {
 		return `[${this.constructor.name}${this.name ? ` (name=${this.name})` : ""}]`;
 	}
 
-	/**
-	 * @throws AbstractTween cannot be cloned.
-	 */
-	clone() {
-		throw "AbstractTween cannot be cloned.";
-	}
+	abstract clone(): AbstractTween;
 
 	/**
 	 * Shared logic that executes at the end of the subclass constructor.

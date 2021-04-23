@@ -1,4 +1,5 @@
-import {Ticker, Event, TickerEvent} from "@create2d/core";
+import {Ticker, Event} from "@create2d/core";
+
 import AbstractTween, {TweenAction, TweenProps, TweenStep} from "./AbstractTween";
 import Ease, {EaseFunction} from "./Ease";
 
@@ -76,7 +77,7 @@ export default class Tween extends AbstractTween {
 	 * @param {Boolean} paused Indicates whether a global pause is in effect. Tweens with {@link Tween#ignoreGlobalPause}
 	 * will ignore this, but all others will pause if this is `true`.
 	 **/
-	static tick(delta: number, paused: boolean = false) {
+	static tick(delta: number = 1, paused: boolean = false) {
 		let tween = Tween._tweenHead;
 		const t = Tween._inTick = Date.now();
 		while (tween) {
@@ -99,7 +100,7 @@ export default class Tween extends AbstractTween {
 
 	/**
 	 * Handle events that result from Tween being used as an event handler. This is included to allow Tween to handle
-	 * {@link TickerEvent} events from the {@link Ticker}.
+	 * {@link Event} events from the {@link Ticker}.
 	 * No other events are handled in Tween.
 	 *
 	 * @static
@@ -108,7 +109,7 @@ export default class Tween extends AbstractTween {
 	 * @param {Object} event An event object passed in by the {@link EventDispatcher}. Will
 	 * usually be of type "tick".
 	 **/
-	static handleEvent(event: TickerEvent) {
+	static handleEvent(event: Event) {
 		if (event.type === "tick") {
 			this.tick(event.delta, event.paused);
 		}
@@ -172,7 +173,7 @@ export default class Tween extends AbstractTween {
 	 * @param {Object} plugin The plugin to install
 	 * @param {Object} props The props to pass to the plugin
 	 */
-	static installPlugin(plugin: any, props: any) {
+	static installPlugin(plugin: any, props?: {[k: string]: any}) {
 		plugin.install(props);
 		const priority = (plugin.priority = plugin.priority || 0), arr = (Tween._plugins = Tween._plugins || []);
 		const l = arr.length;
@@ -361,7 +362,7 @@ export default class Tween extends AbstractTween {
 	/**
 	 * @throws Tween cannot be cloned.
 	 */
-	clone() {
+	clone(): Tween {
 		throw "Tween can not be cloned.";
 	}
 
@@ -610,7 +611,7 @@ export default class Tween extends AbstractTween {
 	 **/
 	_injectProp(name: string, value: any) {
 		let o = this._injected || (this._injected = {});
-		Object.defineProperty(o, name, value);
+		o[name] = value;
 	}
 
 	_addStep(duration: number, props: TweenProps|null, ease: EaseFunction, passive: boolean = false): TweenStep {
@@ -632,14 +633,14 @@ export default class Tween extends AbstractTween {
 
 	_set(props: any) {
 		for (let n in props) {
-			Object.defineProperty(this, n, props[n]);
+			(this as any).n = props[n];
 		}
 	}
 
 	_cloneProps(props: any): TweenProps {
 		let o = {};
 		for (let n in props) {
-			Object.defineProperty(o, n, props[n]);
+			(o as any).n = props[n];
 		}
 		return o;
 	}
@@ -662,7 +663,7 @@ export default class Tween extends AbstractTween {
 
 // tiny api (primarily for tool output):
 {
-	let p = Object.getPrototypeOf(Tween);
+	let p = Tween as any;
 	p.w = p.wait;
 	p.t = p.to;
 	p.c = p.call;

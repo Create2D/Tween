@@ -108,7 +108,7 @@ export default class Timeline extends AbstractTween {
     /**
      * @throws Timeline cannot be cloned.
      **/
-    clone () {
+    clone(): Timeline {
         throw "Timeline can not be cloned.";
     }
 

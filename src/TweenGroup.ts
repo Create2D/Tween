@@ -1,9 +1,8 @@
 import AbstractTween from "./AbstractTween";
-import Tween from "./Tween";
 import Timeline from "./Timeline";
+import Tween from "./Tween";
 
 export default class TweenGroup extends AbstractTween {
-
     private _tweens: AbstractTween[] = [];
     private __onComplete: any;
 
@@ -51,7 +50,7 @@ export default class TweenGroup extends AbstractTween {
      * Shortcut method to create a new tween instance via {@link tweenjs.Tween.get} and immediately add it to this group.
      * @param {Object} target The target object that will have its properties tweened.
      * @param {Object} [props] The configuration properties to apply to this instance.
-     * @return {tweenjs.Tween} A reference to the created tween.
+     * @return {AbstractTween} A reference to the created tween.
      */
     get(target: any, props: any): AbstractTween {
         return this.add(Tween.get(target, props));
@@ -128,6 +127,10 @@ export default class TweenGroup extends AbstractTween {
             tween.removeEventListener && tween.removeEventListener("complete", this.__onComplete);
         }
         return this;
+    }
+
+    clone(): TweenGroup {
+        throw new Error("Method not implemented.");
     }
 
     _onComplete(evt: any) {
