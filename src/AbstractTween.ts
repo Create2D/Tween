@@ -153,7 +153,7 @@ export default abstract class AbstractTween extends EventDispatcher {
 		let pos = this.position;
 		let i = 0;
 		const l = labels.length;
-		for (i = 0; i < l; i++) {
+		for ( ; i < l; i++) {
 			if (pos < labels[i]) {
 				break;
 			}
@@ -189,7 +189,8 @@ export default abstract class AbstractTween extends EventDispatcher {
 	 */
 	setPosition(rawPosition: number, ignoreActions: boolean = false, jump: boolean = false, callback?: (tween: AbstractTween) => void) {
 		const d = this.duration, loopCount = this.loop, prevRawPos = this.rawPosition;
-		let loop = 0, t = 0, end = false;
+		let loop = 0, t = 0;
+		let end: boolean;
 
 		// normalize position:
 		if (rawPosition < 0) {

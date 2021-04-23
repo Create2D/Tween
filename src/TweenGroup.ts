@@ -47,7 +47,7 @@ export default class TweenGroup extends AbstractTween {
     }
 
     /**
-     * Shortcut method to create a new tween instance via {@link tweenjs.Tween.get} and immediately add it to this group.
+     * Shortcut method to create a new tween instance via {@link Tween.get} and immediately add it to this group.
      * @param {Object} target The target object that will have its properties tweened.
      * @param {Object} [props] The configuration properties to apply to this instance.
      * @return {AbstractTween} A reference to the created tween.
@@ -92,7 +92,7 @@ export default class TweenGroup extends AbstractTween {
      * // can also remove multiple objects:
      * myGroup.remove(myTween, myTween2, myTimeline, myOtherGroup);
      *
-     * @param {...tweenjs.Tween|tweenjs.Timeline|tweenjs.TweenGroup} tweens The tween, timeline, or tween group to remove.
+     * @param {...Tween|Timeline|TweenGroup} tweens The tween, timeline, or tween group to remove.
      */
     remove(...tweens: (Tween|TweenGroup|Timeline)[]) {
         const l = tweens.length;

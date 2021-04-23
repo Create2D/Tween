@@ -277,7 +277,7 @@ export default class Tween extends AbstractTween {
 	 * @param {Object} props An object specifying property target values for this tween (Ex. `{x:300}` would tween the x
 	 * property of the target to 300).
 	 * @param {Number} [duration=0] The duration of the tween in milliseconds (or in ticks if `useTicks` is true).
-	 * @param {Function} [ease=Ease.linear] The easing function to use for this tween. See the {@link tweenjs.Ease}
+	 * @param {Function} [ease=Ease.linear] The easing function to use for this tween. See the {@link Ease}
 	 * class for a list of built-in ease functions.
 	 * @chainable
 	 */
@@ -297,8 +297,8 @@ export default class Tween extends AbstractTween {
 	 * @param {String} label The label name.
 	 * @chainable
 	 **/
-	label(name: string): Tween {
-		this.addLabel(name, this.duration);
+	label(label: string): Tween {
+		this.addLabel(label, this.duration);
 		return this;
 	}
 
