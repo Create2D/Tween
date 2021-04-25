@@ -1,6 +1,6 @@
 {
   "name": "@create2d/tween",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Easy to use tweening engine",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/Create2D/Tween#readme",
   "dependencies": {
-    "@create2d/core": "0.0.7"
+    "@create2d/core": "0.0.x"
   },
   "devDependencies": {},
   "sideEffects": false
