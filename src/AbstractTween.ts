@@ -2,23 +2,25 @@ import {EventDispatcher} from "@create2d/core";
 
 import Ease, {EaseFunction} from "./Ease";
 
-export interface TweenProps {
+export type AnyProps = {[k: string]: any};
+
+export interface AbstractTweenProps {
 	useTicks?: boolean,
 	ignoreGlobalPause?: boolean,
 	loop?: number|boolean,
 	reversed?: boolean,
 	bounce?: boolean,
 	timeScale?: number,
-	pluginData?: any,
-	paused?: boolean,
-	position?: number,
-	onChange?: (e: Object|Event) => boolean|void,
-	onComplete?: (e: Object|Event) => boolean|void,
-	override?: boolean
+	onChange?: Function,
+	onComplete?: Function,
 }
 
 export default abstract class AbstractTween extends EventDispatcher {
-	name ?: string;
+	/**
+	 * Uses ticks for all durations instead of milliseconds. This also changes the behaviour of some actions (such as `call`).
+	 * Changing this value on a running tween could have unexpected results.
+	 **/
+	useTicks: boolean = false;
 
 	/**
 	 * Causes this tween to continue playing when a global pause is active. For example, if TweenJS is using {@link Ticker},
@@ -33,12 +35,6 @@ export default abstract class AbstractTween extends EventDispatcher {
 	loop: number = 0;
 
 	/**
-	 * Uses ticks for all durations instead of milliseconds. This also changes the behaviour of some actions (such as `call`).
-	 * Changing this value on a running tween could have unexpected results.
-	 **/
-	useTicks: boolean = false;
-
-	/**
 	 * Causes the tween to play in reverse.
 	 **/
 	reversed: boolean = false;
@@ -49,12 +45,16 @@ export default abstract class AbstractTween extends EventDispatcher {
 	bounce: boolean = false;
 
 	/**
+	 * The current normalized position of the tween. This will always be a value between 0 and `duration`.
+	 * Changing this property directly will have unexpected results, use {@link Tween#setPosition}.
+	 **/
+	position: number = 0;
+
+	/**
 	 * Changes the rate at which the tween advances. For example, a `timeScale` value of `2` will double the
 	 * playback speed, a value of `0.5` would halve it.
 	 **/
 	_timeScale: number = 1;
-	get timeScale(): number { return this._timeScale; }
-	set timeScale(value: number) { this._timeScale = value; }
 
 	/**
 	 * Indicates the duration of this tween in milliseconds (or ticks if `useTicks` is true), irrespective of `loops`.
@@ -63,25 +63,15 @@ export default abstract class AbstractTween extends EventDispatcher {
 	duration: number = 0;
 
 	/**
-	 * The current normalized position of the tween. This will always be a value between 0 and `duration`.
-	 * Changing this property directly will have unexpected results, use {@link Tween#setPosition}.
-	 **/
-	position: number = 0;
-
-	/**
 	 * The raw tween position. This value will be between `0` and `loops * duration` while the tween is active, or -1 before it activates.
 	 **/
 	rawPosition: number = -1;
 
 	_paused: boolean = true;
+
 	_next?: AbstractTween;
 	_prev?: AbstractTween;
 	_parent?: AbstractTween;
-
-	_stepHead = new TweenStep();
-	_stepTail: TweenStep = this._stepHead;
-	_actionHead?: TweenAction;
-	_actionTail?: TweenAction;
 
 	private _labels: {[label: string]: number} = {};
 
@@ -101,7 +91,7 @@ export default abstract class AbstractTween extends EventDispatcher {
 	protected _lastTick: number = 0;
 
 
-	protected constructor(props?: TweenProps) {
+	protected constructor(props?: AbstractTweenProps) {
 		super();
 		if (props) {
 			this.useTicks = !!props.useTicks;
@@ -113,8 +103,13 @@ export default abstract class AbstractTween extends EventDispatcher {
 			props.onChange && this.addEventListener("change", props.onChange);
 			props.onComplete && this.addEventListener("complete", props.onComplete);
 		}
+	}
 
-		// while `position` is shared, it needs to happen after ALL props are set, so it's handled in _init()
+	get timeScale(): number {
+		return this._timeScale;
+	}
+	set timeScale(ts: number) {
+		this._timeScale = ts;
 	}
 
 	/**
@@ -123,7 +118,7 @@ export default abstract class AbstractTween extends EventDispatcher {
 	get labels(): {label: string, position: number}[] {
 		if (!this._labelList) {
 			this._labelList = [];
-			for (let label of Object.keys(this._labels)) {
+			for (let label in this._labels) {
 				this._labelList.push({label, position: this._labels[label]});
 			}
 			this._labelList.sort((a, b) => a.position - b.position);
@@ -165,9 +160,14 @@ export default abstract class AbstractTween extends EventDispatcher {
 	 * Pauses or unpauses the tween. A paused tween is removed from the global registry and is eligible for garbage collection
 	 * if no other references to it exist.
 	 **/
-	abstract get paused(): boolean;
+	set paused(paused: boolean) {
+		this._paused = paused;
+	}
 
-	abstract set paused(paused: boolean);
+	get paused(): boolean {
+		return this._paused;
+	}
+
 
 	/**
 	 * Advances the tween by a specified amount.
@@ -187,7 +187,7 @@ export default abstract class AbstractTween extends EventDispatcher {
 	 * @param {Boolean} [jump=false] If true, only actions at the new position will be run. If false, actions between the old and new position are run.
 	 * @param {Function} [callback] Primarily for use with MovieClip, this callback is called after properties are updated, but before actions are run.
 	 */
-	setPosition(rawPosition: number, ignoreActions: boolean = false, jump: boolean = false, callback?: (tween: AbstractTween) => void) {
+	setPosition(rawPosition: number, ignoreActions: boolean = false, jump: boolean = false, callback?: Function) {
 		const d = this.duration, loopCount = this.loop, prevRawPos = this.rawPosition;
 		let loop = 0, t = 0;
 		let end: boolean;
@@ -323,9 +323,7 @@ export default abstract class AbstractTween extends EventDispatcher {
 	 *
 	 * @return {String} a string representation of the instance.
 	 */
-	toString(): string {
-		return `[${this.constructor.name}${this.name ? ` (name=${this.name})` : ""}]`;
-	}
+	abstract toString(): string;
 
 	abstract clone(): AbstractTween;
 
@@ -336,7 +334,7 @@ export default abstract class AbstractTween extends EventDispatcher {
 	 *
 	 * @param {Object} [props]
 	 */
-	_init(props: TweenProps) {
+	_init(props: AnyProps) {
 		if (!props || !props.paused) {
 			this.paused = false;
 		}
@@ -381,12 +379,12 @@ export class TweenStep {
 	prev?: TweenStep;
 	t: number;
 	d: number;
-	props: TweenProps;
+	props: AnyProps;
 	ease: Function;
 	passive: boolean;
 	index: number = 0;
 
-	constructor (prev?: TweenStep, t: number = 0, d: number = 0, props: TweenProps = {}, ease: EaseFunction = Ease.linear, passive: boolean = true) {
+	constructor (prev?: TweenStep, t: number = 0, d: number = 0, props: AnyProps = {}, ease: EaseFunction = Ease.linear, passive: boolean = true) {
 		this.prev = prev;
 		this.t = t;
 		this.d = d;
@@ -402,13 +400,12 @@ export class TweenAction {
 	next?: TweenAction;
 	prev?: TweenAction;
 	t: number;
-	d: number;
+	d: number = 0;
 	scope: any;
 	funct: Function;
 	params: any[];
 
 	constructor (prev: TweenAction|undefined, t: number, scope: any, funct: Function, params: any[]) {
-		this.d = 0;
 		this.prev = prev;
 		this.t = t;
 		this.scope = scope;

@@ -1,8 +1,8 @@
 import AbstractTween from "./AbstractTween";
-import Timeline from "./Timeline";
 import Tween from "./Tween";
 
 export default class TweenGroup extends AbstractTween {
+
     private _tweens: AbstractTween[] = [];
     private __onComplete: any;
 
@@ -42,7 +42,7 @@ export default class TweenGroup extends AbstractTween {
         const tweens = this._tweens;
         this._timeScale = value;
         for (let i = tweens.length - 1; i >= 0; i--) {
-            tweens[i].timeScale = value;
+            tweens[i]._timeScale = value;
         }
     }
 
@@ -76,7 +76,9 @@ export default class TweenGroup extends AbstractTween {
         for (let i = 0; i < l; i++) {
             const tween = tweens[i];
             tween.paused = this._paused;
-            if (this._timeScale !== null) { tween.timeScale = this._timeScale; }
+            if (this.timeScale !== null) {
+                tween.timeScale = this.timeScale;
+            }
             this._tweens.push(tween);
             tween.addEventListener && tween.addEventListener("complete", this._onComplete);
         }
@@ -94,7 +96,7 @@ export default class TweenGroup extends AbstractTween {
      *
      * @param {...Tween|Timeline|TweenGroup} tweens The tween, timeline, or tween group to remove.
      */
-    remove(...tweens: (Tween|TweenGroup|Timeline)[]) {
+    remove(...tweens: AbstractTween[]) {
         const l = tweens.length;
         const t = this._tweens;
         for (let i = 0; i < l; i++) {
@@ -127,6 +129,10 @@ export default class TweenGroup extends AbstractTween {
             tween.removeEventListener && tween.removeEventListener("complete", this.__onComplete);
         }
         return this;
+    }
+
+    toString(): string {
+        throw new Error("Method not implemented.");
     }
 
     clone(): TweenGroup {

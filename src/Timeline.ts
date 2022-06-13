@@ -1,7 +1,7 @@
-import AbstractTween, {TweenProps} from "./AbstractTween";
+import AbstractTween, {AbstractTweenProps} from "./AbstractTween";
 import Tween from "./Tween";
 
-export interface TimelineProps extends TweenProps {
+export interface TimelineProps extends AbstractTweenProps {
     tweens?: Tween[],
     labels?: any
 }
@@ -105,9 +105,10 @@ export default class Timeline extends AbstractTween {
         this._paused = paused;
     }
 
-    /**
-     * @throws Timeline cannot be cloned.
-     **/
+    toString(): string {
+        throw new Error("Method not implemented.");
+    }
+
     clone(): Timeline {
         throw "Timeline can not be cloned.";
     }
@@ -120,10 +121,6 @@ export default class Timeline extends AbstractTween {
     }
 
     _runActions(startRawPos: number, endRawPos: number, jump: boolean, includeStart: boolean){
-        if (!this._actionHead && !this.tweens) {
-            return;
-        }
-
         const d = this.duration, loopCount = this.loop;
         let reversed = this.reversed, bounce = this.bounce;
         let loop0, loop1, t0, t1;

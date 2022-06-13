@@ -1,11 +1,15 @@
 import {Ticker, Event} from "@create2d/core";
 
-import AbstractTween, {TweenAction, TweenProps, TweenStep} from "./AbstractTween";
+import AbstractTween, {AnyProps, TweenAction, AbstractTweenProps, TweenStep} from "./AbstractTween";
 import Ease, {EaseFunction} from "./Ease";
 
-type proto = {[k: string]: any};
+interface TweenProps extends AbstractTweenProps {
+	override?: any;
+	pluginData?: any;
+}
 
 export default class Tween extends AbstractTween {
+
 	private static _inited: boolean = false;
 
 	pluginData: any = null;
@@ -41,7 +45,12 @@ export default class Tween extends AbstractTween {
 	 **/
 	_injected: any = null;
 
-	constructor(target: any, props: TweenProps = {}) {
+	_stepHead = new TweenStep();
+	_stepTail: TweenStep = this._stepHead;
+	_actionHead?: TweenAction;
+	_actionTail?: TweenAction;
+
+	constructor(target: AnyProps, props: TweenProps = {}) {
 		super(props);
 
 		this.target = target;
@@ -62,7 +71,7 @@ export default class Tween extends AbstractTween {
 	 * Returns a new tween instance. This is functionally identical to using `new Tween(...)`, but may look cleaner
 	 * with the chained syntax of TweenJS.
 	 **/
-	static get(target: any, props?: TweenProps): Tween {
+	static get(target: AnyProps, props?: TweenProps): Tween {
 		return new Tween(target, props);
 	}
 
@@ -359,9 +368,10 @@ export default class Tween extends AbstractTween {
 		this._paused = paused;
 	}
 
-	/**
-	 * @throws Tween cannot be cloned.
-	 */
+	toString(): string {
+		throw new Error("Method not implemented.");
+	}
+
 	clone(): Tween {
 		throw "Tween can not be cloned.";
 	}
@@ -408,17 +418,19 @@ export default class Tween extends AbstractTween {
 		} // don't update props.
 
 		let v, v0, v1, ease;
-		let p0 = step.prev && step.prev.props;
-		let p1 = step.props;
+		let p0: AnyProps = step.prev && step.prev.props || {};
+		let p1: AnyProps = step.props;
 		if (ease = step.ease) {
 			ratio = ease(ratio, 0, 1, 1);
 		}
 
 		let plugins = this._plugins;
-		proploop :
+		proploop:
 		for (let n in p0) {
-			v0 = (p0 as proto)[n];
-			v1 = (p1 as proto)[n];
+			v0 = p0[n];
+			v1 = p1[n];
+
+			console.log(n, v0, v1);
 
 			// values are different & it is numeric then interpolate:
 			if (v0 !== v1 && (typeof (v0) === "number")) {
@@ -529,24 +541,22 @@ export default class Tween extends AbstractTween {
 		return false;
 	}
 
-	_appendProps(props: TweenProps, step: TweenStep, stepPlugins?: any) {
-		const jsProps: proto = props;
-
-		let initProps: proto = this._stepHead.props, target = this.target, plugins = Tween._plugins;
+	_appendProps(props: AnyProps, step: TweenStep, stepPlugins?: any) {
+		let initProps = this._stepHead.props, target = this.target, plugins = Tween._plugins;
 		let n: string, i, l, value, initValue, inject;
 
 		let oldStep = step.prev,
-			oldProps: proto = oldStep && oldStep.props || {};
-		let stepProps: proto = step.props || (step.props = this._cloneProps(oldProps));
-		let cleanProps: proto = {};
+			oldProps = oldStep && oldStep.props || {};
+		let stepProps = step.props || (step.props = this._cloneProps(oldProps));
+		let cleanProps: AnyProps = {};
 
-		let ignored: proto = {};
+		let ignored: AnyProps = {};
 		for (n in props) {
 			if (!props.hasOwnProperty(n)) {
 				continue;
 			}
 
-			cleanProps[n] = stepProps[n] = jsProps[n];
+			cleanProps[n] = stepProps[n] = props[n];
 
 			if (initProps[n] !== undefined) {
 				continue;
@@ -577,7 +587,7 @@ export default class Tween extends AbstractTween {
 		}
 
 		for (n in cleanProps) {
-			value = jsProps[n];
+			value = props[n];
 
 			// propagate old value to previous steps:
 			let o, prev = oldStep;
@@ -585,10 +595,10 @@ export default class Tween extends AbstractTween {
 				if (prev.props === o.props) {
 					continue;
 				} // wait step
-				if ((prev.props as proto)[n] !== undefined) {
+				if (prev.props[n] !== undefined) {
 					break;
 				} // already has a value, we're done.
-				(prev.props as proto)[n] = oldProps[n];
+				prev.props[n] = oldProps[n];
 			}
 		}
 
@@ -633,18 +643,17 @@ export default class Tween extends AbstractTween {
 
 	_set(props: any) {
 		for (let n in props) {
-			(this as any).n = props[n];
+			(this as any)[n] = props[n];
 		}
 	}
 
-	_cloneProps(props: any): TweenProps {
-		let o = {};
+	_cloneProps(props: AnyProps): AnyProps {
+		let o: AnyProps = {};
 		for (let n in props) {
-			(o as any).n = props[n];
+			o[n] = props[n];
 		}
 		return o;
 	}
-
 
 // static properties
 	/**
@@ -659,13 +668,4 @@ export default class Tween extends AbstractTween {
 	 * 0 if not in tick, otherwise a tick ID (currently just a timestamp).
 	 **/
 	private static _inTick = 0;
-}
-
-// tiny api (primarily for tool output):
-{
-	let p = Tween as any;
-	p.w = p.wait;
-	p.t = p.to;
-	p.c = p.call;
-	p.s = p.set;
 }
